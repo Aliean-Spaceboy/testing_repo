@@ -1724,118 +1724,7 @@ function openCloudModal() {
   document.getElementById('ghGistIdInput').value = localStorage.getItem('dt_gh_gist_id') || '';
 }
 
-function updateCloudStatus(msg, isError = false) {
-  const el = document.getElementById('cloudSyncStatus');
-  const log = document.getElementById('cloudSyncLog');
-  if(el) { el.textContent = msg; el.style.color = isError ? 'var(--danger)' : 'var(--success)'; }
-  if(log) { log.textContent = msg; log.style.color = isError ? 'var(--danger)' : 'var(--success)'; }
-}
-
-async function initCloudSync() {
-  const token = document.getElementById('ghTokenInput').value.trim();
-  let gistId = document.getElementById('ghGistIdInput').value.trim();
-  
-  if (!token) return updateCloudStatus('Please provide a GitHub Token.', true);
-  
-  localStorage.setItem('dt_gh_token', token);
-  updateCloudStatus('Connecting to GitHub...');
-  
-  if (!gistId) {
-    // Create new Gist
-    try {
-      const res = await fetch('https://api.github.com/gists', {
-        method: 'POST',
-        headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
-        body: JSON.stringify({
-          description: "Deutsches Tagebuch Cloud Database",
-          public: false,
-          files: { "deutsches_tagebuch_cloud_db.json": { content: JSON.stringify(getExportData()) } }
-        })
-      });
-      const data = await res.json();
-      if (data.id) {
-        localStorage.setItem('dt_gh_gist_id', data.id);
-        document.getElementById('ghGistIdInput').value = data.id;
-        updateCloudStatus('Database created & synced! Gist ID saved.');
-        setTimeout(() => document.getElementById('cloudSyncModal').style.display='none', 2000);
-      } else {
-        throw new Error(data.message || 'Failed to create Gist.');
-      }
-    } catch(e) {
-      updateCloudStatus('Error: ' + e.message, true);
-    }
-  } else {
-    // Save Gist ID and push
-    localStorage.setItem('dt_gh_gist_id', gistId);
-    syncToCloud();
-    setTimeout(() => document.getElementById('cloudSyncModal').style.display='none', 2000);
-  }
-}
-
-function getExportData() {
-  return {
-    dt_entries: load('dt_entries', []),
-    dt_vocab: load('dt_vocab', []),
-    dt_speak: load('dt_speak', []),
-    dt_sentences: load('dt_sentences', []),
-    dt_roadmap: load('dt_roadmap', {}),
-    dt_reflect: load('dt_reflect', {})
-  };
-}
-
-async function syncToCloud() {
-  const token = localStorage.getItem('dt_gh_token');
-  const gistId = localStorage.getItem('dt_gh_gist_id');
-  if (!token || !gistId) return;
-  
-  updateCloudStatus('&#8987; Syncing to Cloud...');
-  try {
-    const res = await fetch('https://api.github.com/gists/' + gistId, {
-      method: 'PATCH',
-      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' },
-      body: JSON.stringify({
-        files: { "deutsches_tagebuch_cloud_db.json": { content: JSON.stringify(getExportData()) } }
-      })
-    });
-    if (res.ok) {
-      updateCloudStatus('&#10004;&#65039; Cloud synced exactly at ' + new Date().toLocaleTimeString());
-    } else {
-      updateCloudStatus('&#10060; Sync failed. Token expired?', true);
-    }
-  } catch(e) {
-    updateCloudStatus('&#10060; Offline. Will sync later.', true);
-  }
-}
-
-async function restoreFromCloud() {
-  const token = document.getElementById('ghTokenInput').value.trim();
-  const gistId = document.getElementById('ghGistIdInput').value.trim();
-  
-  if (!token || !gistId) return updateCloudStatus('Need Token AND Gist ID to restore.', true);
-  
-  updateCloudStatus('&#8987; Downloading database...');
-  try {
-    const res = await fetch('https://api.github.com/gists/' + gistId, {
-      headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' }
-    });
-    const data = await res.json();
-    if (data.files && data.files["deutsches_tagebuch_cloud_db.json"]) {
-      const parsed = JSON.parse(data.files["deutsches_tagebuch_cloud_db.json"].content);
-      
-      // Hydrate local storage
-      if (parsed.dt_entries) localStorage.setItem('dt_entries', JSON.stringify(parsed.dt_entries));
-      if (parsed.dt_vocab) localStorage.setItem('dt_vocab', JSON.stringify(parsed.dt_vocab));
-      if (parsed.dt_speak) localStorage.setItem('dt_speak', JSON.stringify(parsed.dt_speak));
-      if (parsed.dt_roadmap) localStorage.setItem('dt_roadmap', JSON.stringify(parsed.dt_roadmap));
-      if (parsed.dt_reflect) localStorage.setItem('dt_reflect', JSON.stringify(parsed.dt_reflect));
-      if (parsed.dt_sentences) localStorage.setItem('dt_sentences', JSON.stringify(parsed.dt_sentences));
-      
-      localStorage.setItem('dt_gh_token', token);
-      localStorage.setItem('dt_gh_gist_id', gistId);
-      
-      updateCloudStatus('&#10004;&#65039; Restore complete! Reloading...');
-      setTimeout(() => location.reload(), 1500);
-    } else {
+ else {
       throw new Error('Database file not found in Gist.');
     }
   } catch(e) {
@@ -3464,13 +3353,15 @@ function saveCloudConfig() {
   localStorage.setItem('github_sync_token', token);
   if (gistId) localStorage.setItem('github_gist_id', gistId);
   
-  document.getElementById('cloudSyncModal').style.display = 'none';
+  document.getElementById('cloudSyncModal').classList.remove('open');
   updateCloudSyncUI();
   
   // LOGIC FIX: If the user manually provided a Gist ID, DO NOT auto-sync yet!
   // They are likely trying to restore their data on a new device.
   // Overwriting immediately would wipe out their cloud backup!
-  if (!gistId) {
+  if (!navigator.onLine) {
+    alert('You are currently offline. Cloud Sync is saved but will activate when you reconnect.');
+  } else if (!gistId) {
     syncToCloud(true);
   } else {
     alert('Connected! Click "Restore Data" to download your backup.');
@@ -3506,6 +3397,15 @@ async function syncToCloud(immediate = false) {
   if (cloudSyncTimeout && !immediate) clearTimeout(cloudSyncTimeout);
   
   const performSync = async () => {
+    if (!navigator.onLine) {
+      const statusEl = document.getElementById('syncStatusText');
+      if(statusEl) {
+        statusEl.innerText = 'Offline (Will sync later)';
+        statusEl.style.color = 'var(--text-muted)';
+      }
+      return; // Gracefully fail, no internet
+    }
+    
     try {
       const statusEl = document.getElementById('syncStatusText');
       if(statusEl) {
@@ -3597,6 +3497,11 @@ async function restoreFromCloud() {
   if (!token || !gistId) return alert('No token or Gist ID configured for restore!');
   
   if(!confirm('This will OVERWRITE all local app data with the cloud backup. Are you sure?')) return;
+  
+  if (!navigator.onLine) {
+    alert('You are currently offline. Please connect to the internet to restore your backup from GitHub.');
+    return;
+  }
   
   try {
     document.getElementById('syncStatusText').innerText = 'Restoring...';

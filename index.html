@@ -96,19 +96,7 @@
   
   
 
-    <!-- Cloud Sync Panel -->
-    <div class="card" style="margin-bottom:20px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), transparent); border-color: #fbbf24;">
-      <div class="card-title" style="color: #fbbf24;">&#9729;&#65039; Cloud Sync (GitHub Gists)</div>
-      <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 15px; margin-top: 5px;">
-        Automatically back up your vocabulary, diary, and progress to your GitHub account. Sync across your phone and laptop!
-      </div>
-      <div id="cloudSyncStatus" style="font-size:0.85rem; margin-bottom: 15px; color: var(--text-muted);">
-        Status: <span style="color:var(--danger); font-weight:bold;" id="syncStatusText">Not Connected</span>
-      </div>
-      <div style="display:flex; gap: 10px;">
-        <button class="btn btn-primary" onclick="document.getElementById('cloudSyncModal').style.display='flex'">Configure</button>
-        <button class="btn btn-outline" id="cloudRestoreBtn" style="display:none;" onclick="restoreFromCloud()">Restore Data</button>
-      </div>
+
     </div>
   <div class="grid-2">
     <div class="card">
@@ -166,8 +154,23 @@
         <button class="btn btn-outline" style="border-color:var(--danger); color:var(--danger)">?? Import Backup</button>
                 <input type="file" accept=".json" onchange="importData(event)" style="position:absolute; left:0; top:0; opacity:0; cursor:pointer; height:100%">
       </div>
+      </div>
+      
+      <!-- GitHub Cloud Sync Merged UI -->
+      <div style="border-top: 1px solid var(--border); padding-top: 15px;">
+        <div style="color: #fbbf24; font-weight: bold; margin-bottom: 5px;">&#9729;&#65039; Cloud Sync (GitHub Gists)</div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom: 10px;">
+          Automatically back up your vocabulary, diary, and progress to your GitHub account. Sync across your phone and laptop!
+        </div>
+        <div id="cloudSyncStatus" style="font-size:0.85rem; margin-bottom: 10px; color: var(--text-muted);">
+          Status: <span style="color:var(--danger); font-weight:bold;" id="syncStatusText">Not Connected</span>
+        </div>
+        <div style="display:flex; gap: 10px;">
+          <button class="btn btn-primary" onclick="document.getElementById('cloudSyncModal').classList.add('open')">Configure GitHub Sync</button>
+          <button class="btn btn-outline" id="cloudRestoreBtn" style="display:none;" onclick="restoreFromCloud()">Restore from Cloud</button>
+        </div>
+      </div>
     </div>
-  </div>
 
   <!-- WIKI BUTTON -->
   <div style="margin-top:14px; text-align:center">
@@ -812,7 +815,7 @@
 <div id="toast"></div>
 
 <script src="js/daily_data.js?v=1782456062322"></script>
-  <script src="js/script.js?v=1782456870589"></script>
+  <script src="js/script.js?v=1782458259380"></script>
 <!-- DIARY CHECKLIST MODAL -->
 <div id="diaryChecklistModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center">
   <div style="background:var(--surface); padding:24px; border-radius:12px; max-width:400px; width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2)">
@@ -893,7 +896,7 @@
       
       <div style="display: flex; gap: 10px;">
         <button class="btn btn-primary" style="flex:1;" onclick="saveCloudConfig()">Connect & Sync</button>
-        <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('cloudSyncModal').style.display='none'">Cancel</button>
+        <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('cloudSyncModal').classList.remove('open')">Cancel</button>
       </div>
     </div>
   </div>
