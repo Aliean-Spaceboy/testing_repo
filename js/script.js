@@ -1718,19 +1718,19 @@ async function syncCloudData() {
   }
 }
 
-function openCloudModal() {
-  document.getElementById('cloudSyncModal').style.display = 'flex';
-  document.getElementById('ghTokenInput').value = localStorage.getItem('dt_gh_token') || '';
-  document.getElementById('ghGistIdInput').value = localStorage.getItem('dt_gh_gist_id') || '';
-}
 
- else {
-      throw new Error('Database file not found in Gist.');
-    }
-  } catch(e) {
-    updateCloudStatus('Error: ' + e.message, true);
-  }
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* ==========================================
  * FILE: js/ai.js
@@ -3234,20 +3234,20 @@ window.chatMessages = [];
 
 
 
-setTimeout(() => {
-  const token = localStorage.getItem('dt_gh_token');
-  const gistId = localStorage.getItem('dt_gh_gist_id');
-  if (token && gistId) {
-    updateCloudStatus('&#10004;&#65039; Cloud Sync Active � Gist: ' + gistId.substring(0, 8) + '...');
-    // Pre-fill the modal inputs so they survive a refresh
-    const tokenInput = document.getElementById('ghTokenInput');
-    const gistInput = document.getElementById('ghGistIdInput');
-    if (tokenInput) tokenInput.value = token;
-    if (gistInput) gistInput.value = gistId;
-  } else {
-    updateCloudStatus('Not connected. Data is local only.');
-  }
-}, 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // =========================================================
 // PHASE 8: IDLE-AWARE BOOTCAMP TIMER
@@ -3356,15 +3356,23 @@ function saveCloudConfig() {
   document.getElementById('cloudSyncModal').classList.remove('open');
   updateCloudSyncUI();
   
-  // LOGIC FIX: If the user manually provided a Gist ID, DO NOT auto-sync yet!
-  // They are likely trying to restore their data on a new device.
-  // Overwriting immediately would wipe out their cloud backup!
   if (!navigator.onLine) {
     alert('You are currently offline. Cloud Sync is saved but will activate when you reconnect.');
-  } else if (!gistId) {
-    syncToCloud(true);
+    return;
+  }
+  
+  // Logic Fix: Check if the user is pasting a NEW Gist ID vs just saving the existing one.
+  const existingGistId = localStorage.getItem('github_gist_id');
+  
+  if (gistId && gistId !== existingGistId) {
+    // The user pasted a DIFFERENT Gist ID (likely trying to restore a backup to this device)
+    localStorage.setItem('github_gist_id', gistId);
+    alert('Connected to Backup! Click "Restore Data" to download your data.');
   } else {
-    alert('Connected! Click "Restore Data" to download your backup.');
+    // The user either created a new connection (no Gist ID) or is just re-saving their current setup.
+    // In both cases, we want to perform an immediate sync.
+    if (!gistId) localStorage.removeItem('github_gist_id');
+    syncToCloud(true);
   }
 }
 
@@ -3519,19 +3527,33 @@ async function restoreFromCloud() {
     if (!file) throw new Error('Backup file not found in Gist');
     
     const parsed = JSON.parse(file.content);
-    if(parsed.appState) {
-      // Overwrite local storage keys
-      localStorage.setItem('dt_sentences', JSON.stringify(parsed.appState.dailySentences));
-      localStorage.setItem('dt_sentences_pool', JSON.stringify(parsed.appState.sentences_pool));
-      localStorage.setItem('dt_stories', JSON.stringify(parsed.appState.stories));
-      localStorage.setItem('dt_stories_pool', JSON.stringify(parsed.appState.stories_pool));
-      localStorage.setItem('dt_grammar_pool', JSON.stringify(parsed.appState.grammar_pool));
-      localStorage.setItem('dt_entries', JSON.stringify(parsed.appState.diaryEntries));
-      localStorage.setItem('dt_vocab', JSON.stringify(parsed.appState.vocab));
-      localStorage.setItem('dt_vocab_pool', JSON.stringify(parsed.appState.vocab_pool));
-      localStorage.setItem('dt_speak', JSON.stringify(parsed.appState.speakNotesList));
+    
+    // Support NEW appState format
+    if (parsed.appState) {
+      if(parsed.appState.dailySentences) localStorage.setItem('dt_sentences', JSON.stringify(parsed.appState.dailySentences));
+      if(parsed.appState.sentences_pool) localStorage.setItem('dt_sentences_pool', JSON.stringify(parsed.appState.sentences_pool));
+      if(parsed.appState.stories) localStorage.setItem('dt_stories', JSON.stringify(parsed.appState.stories));
+      if(parsed.appState.stories_pool) localStorage.setItem('dt_stories_pool', JSON.stringify(parsed.appState.stories_pool));
+      if(parsed.appState.grammar_pool) localStorage.setItem('dt_grammar_pool', JSON.stringify(parsed.appState.grammar_pool));
+      if(parsed.appState.diaryEntries) localStorage.setItem('dt_entries', JSON.stringify(parsed.appState.diaryEntries));
+      if(parsed.appState.vocab) localStorage.setItem('dt_vocab', JSON.stringify(parsed.appState.vocab));
+      if(parsed.appState.vocab_pool) localStorage.setItem('dt_vocab_pool', JSON.stringify(parsed.appState.vocab_pool));
+      if(parsed.appState.speakNotesList) localStorage.setItem('dt_speak', JSON.stringify(parsed.appState.speakNotesList));
       alert('Data restored successfully! The page will now reload.');
       location.reload();
+    } 
+    // Support LEGACY format (dt_vocab, dt_entries directly in root)
+    else if (parsed.dt_entries || parsed.dt_vocab) {
+      if (parsed.dt_entries) localStorage.setItem('dt_entries', JSON.stringify(parsed.dt_entries));
+      if (parsed.dt_vocab) localStorage.setItem('dt_vocab', JSON.stringify(parsed.dt_vocab));
+      if (parsed.dt_speak) localStorage.setItem('dt_speak', JSON.stringify(parsed.dt_speak));
+      if (parsed.dt_roadmap) localStorage.setItem('dt_roadmap', JSON.stringify(parsed.dt_roadmap));
+      if (parsed.dt_reflect) localStorage.setItem('dt_reflect', JSON.stringify(parsed.dt_reflect));
+      if (parsed.dt_sentences) localStorage.setItem('dt_sentences', JSON.stringify(parsed.dt_sentences));
+      alert('Legacy Data restored successfully! The page will now reload.');
+      location.reload();
+    } else {
+      throw new Error('Unrecognized database format in Gist.');
     }
   } catch(e) {
     console.error(e);

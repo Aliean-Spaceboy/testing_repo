@@ -1,11 +1,16 @@
 const fs = require('fs');
+let js = fs.readFileSync('js/script.js', 'utf8');
+const lines = js.split('\n');
 
-const files = fs.readdirSync('js').filter(f => f.endsWith('.js'));
-for (const f of files) {
-  let content = fs.readFileSync('js/' + f, 'utf8');
-  if (content.includes('window.diaryEntries:')) {
-    content = content.replace(/window\.diaryEntries:/g, "'window.diaryEntries':");
-    fs.writeFileSync('js/' + f, content);
-    console.log("Fixed window.diaryEntries in " + f);
-  }
+// Clear lines 1720 to 1732 (openCloudModal to leftover catch block)
+for (let i = 1720; i <= 1732; i++) {
+  lines[i] = '';
 }
+
+// Clear lines 3236 to 3249 (setTimeout calling updateCloudStatus)
+for (let i = 3236; i <= 3249; i++) {
+  lines[i] = '';
+}
+
+fs.writeFileSync('js/script.js', lines.join('\n'));
+console.log('Syntax errors and leftover code removed.');
