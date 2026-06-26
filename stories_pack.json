@@ -1,0 +1,47 @@
+﻿[
+  {
+    "title": "Das Server-Update in der Nacht",
+    "text": "Es war Freitagabend, 23:00 Uhr. Julian, ein Systemadministrator, trank seinen dritten Kaffee. Das Unternehmen hatte beschlossen, alle Server auf eine neue Linux-Version zu aktualisieren. Eigentlich sollte das automatisch passieren, aber ein Skript war fehlerhaft. Julian musste sich manuell per SSH auf jeden Server einloggen und das Update starten. Um 3:00 Uhr morgens war er endlich fertig. Er testete die Webseite: Sie war online und reagierte doppelt so schnell wie vorher. Erschöpft, aber zufrieden, ging er nach Hause.",
+    "questions": [
+      { "text": "1. Das Update passierte vollautomatisch ohne Probleme.", "answer": false },
+      { "text": "2. Julian arbeitete bis spät in die Nacht.", "answer": true },
+      { "text": "3. Nach dem Update war die Webseite langsamer.", "answer": false }
+    ]
+  },
+  {
+    "title": "Das Scrum-Meeting am Montagmorgen",
+    "text": "Jeden Montag um 10:00 Uhr trifft sich das Entwicklungsteam im Konferenzraum. Der Scrum Master, Herr Schmidt, steht vor dem Whiteboard. \"Was haben wir letzte Woche erreicht?\", fragt er. Lisa berichtet, dass sie die Datenbankmigration erfolgreich abgeschlossen hat. Tom erklärt, dass er noch an der neuen API arbeitet, weil es unerwartete Probleme mit der Sicherheit gab. Herr Schmidt notiert alles und sagt: \"Gut, das API-Problem hat höchste Priorität für diesen Sprint. Lasst uns im Pair-Programming daran arbeiten.\"",
+    "questions": [
+      { "text": "1. Das Team trifft sich jeden Dienstag.", "answer": false },
+      { "text": "2. Lisa hatte Probleme mit der Datenbankmigration.", "answer": false },
+      { "text": "3. Tom und ein Kollege sollen zusammen an der API arbeiten.", "answer": true }
+    ]
+  },
+  {
+    "title": "Der mysteriöse Bug",
+    "text": "Seit zwei Wochen klagten die Nutzer der neuen App über Abstürze. Die Fehlermeldungen waren unklar. Das QA-Team konnte den Fehler nicht reproduzieren. Erst als die Entwicklerin Sarah sich die Log-Dateien genau ansah, fand sie das Muster. Der Absturz passierte nur, wenn ein Nutzer ein Profilbild hochlud, das größer als 5 Megabyte war. Der Speicher des Servers lief voll, weil das Bildbearbeitungs-Modul ein Speicherleck (Memory Leak) hatte. Sarah schrieb einen Fix, der die Bildgröße vor dem Upload komprimierte. Das Problem war gelöst.",
+    "questions": [
+      { "text": "1. Der Fehler passierte bei jedem Nutzer.", "answer": false },
+      { "text": "2. Sarah fand den Fehler durch das Lesen der Log-Dateien.", "answer": true },
+      { "text": "3. Das Problem war ein Memory Leak.", "answer": true }
+    ]
+  },
+  {
+    "title": "Die Einführung von Home-Office",
+    "text": "Vor zwei Jahren beschloss das Softwareunternehmen \"TechNova\", seinen Mitarbeitern 100% Home-Office anzubieten. Am Anfang waren die Manager skeptisch. Sie dachten, die Produktivität würde sinken. Aber das Gegenteil passierte. Die Entwickler waren fokussierter, weil es keine ständigen Störungen durch Kollegen gab. Die Kommunikation lief über Slack und Video-Calls. Heute hat das Unternehmen sein großes, teures Büro gekündigt und spart viel Geld. Die Mitarbeiter sind glücklicher und haben mehr Freizeit, da der Weg zur Arbeit wegfällt.",
+    "questions": [
+      { "text": "1. Die Manager waren sofort begeistert von der Idee.", "answer": false },
+      { "text": "2. Die Produktivität der Entwickler ist gestiegen.", "answer": true },
+      { "text": "3. Das Unternehmen hat ein noch größeres Büro gemietet.", "answer": false }
+    ]
+  },
+  {
+    "title": "Künstliche Intelligenz in der Medizin",
+    "text": "Ein deutsches Startup hat eine neue KI-Software entwickelt, die Ärzten bei der Diagnose von Krankheiten hilft. Die Software analysiert Röntgenbilder in Sekundenschnelle und kann kleine Tumore erkennen, die das menschliche Auge oft übersieht. Die Entwickler haben die KI mit über einer Million Bildern aus Krankenhäusern weltweit trainiert. Der Chefentwickler betont jedoch: \"Die KI soll den Arzt nicht ersetzen, sondern ihn unterstützen. Die finale Entscheidung trifft immer ein Mensch.\"",
+    "questions": [
+      { "text": "1. Die KI-Software analysiert Blutproben.", "answer": false },
+      { "text": "2. Die KI wurde mit vielen Bildern trainiert.", "answer": true },
+      { "text": "3. Die KI trifft die endgültigen medizinischen Entscheidungen.", "answer": false }
+    ]
+  }
+]

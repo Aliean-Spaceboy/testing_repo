@@ -1,0 +1,17 @@
+[
+  {
+    "text": "Ich spreche mit d___ Mann.",
+    "answer": "em",
+    "hint": "Dativ, maskulin"
+  },
+  {
+    "text": "Wir fahren in d___ Stadt.",
+    "answer": "ie",
+    "hint": "Akkusativ, feminin (movement)"
+  },
+  {
+    "text": "Das ist d___ Haus meiner Eltern.",
+    "answer": "as",
+    "hint": "Nominativ, neutrum"
+  }
+]

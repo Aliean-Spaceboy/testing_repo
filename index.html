@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>German Diary | Fluent</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#127465;&#127466;</text></svg>">
+  <meta name="description" content="A daily German language practice diary app to help you reach B2 level. Track entries, vocabulary, streaks, and progress."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css?v=1782456062322">
+
+  <style>
+    .lingq-word { cursor:pointer; padding:2px; border-radius:4px; transition:0.2s; display:inline-block; }
+    .lingq-word:hover { background:var(--accent); color:white; }
+    #lingqTooltip { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:var(--surface); border:2px solid var(--accent); padding:15px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:9999; display:none; flex-direction:column; gap:10px; min-width:300px; text-align:center; }
+  </style>
+  </head>
+<body>
+
+
+<header>
+  <div class="header-inner">
+    <div style="display:flex;align-items:center;gap:12px;font-weight:700;font-size:1.3rem">
+      <span style="color:var(--gold)">DE</span> Deutsches Tagebuch
+    </div>
+    <div class="streak-badge" id="streakBadge">?? 0 Day Streak</div>
+  </div>
+</header>
+
+<nav>
+  <div class="nav-inner">
+    <button class="nav-btn active" onclick="showSection('dashboard')">&#128202; Dashboard</button>
+    <button class="nav-btn" onclick="showSection('diary')">&#128211; Diary</button>
+    <button class="nav-btn" onclick="showSection('vocab')">&#128218; Vocabulary</button>
+    <button class="nav-btn" onclick="showSection('dictionary')">&#128214; Dictionary</button>
+    <button class="nav-btn" onclick="showSection('speaking')">&#127892; Speaking</button>
+    <button class="nav-btn" onclick="showSection('quiz')">&#129504; Quiz</button>
+    
+    <div class="dropdown">
+      <button class="nav-btn drop-btn" onclick="toggleDropdown(event)">&#9776; More <span style="font-size:0.7rem">&#9660;</span></button>
+      <div class="dropdown-content" id="moreDropdown">
+        <button class="nav-btn" onclick="showSection('reflection')">&#129694; Weekly Reflection</button>
+        <button class="nav-btn" onclick="showSection('entries')">&#128450; Past Entries</button>
+        <button class="nav-btn" onclick="showSection('grammar')">&#9999;&#65039; Grammar Tips</button>
+        <button class="nav-btn" onclick="showSection('sentencebuilder')">&#127959;&#65039; Sentence Builder</button>
+        <button class="nav-btn" onclick="showSection('srs')">&#128259; SRS Review</button>
+        <button class="nav-btn" onclick="showSection('dictation')">&#127911; Dictation</button>
+        
+        <button class="nav-btn" onclick="document.getElementById('advSetupScreen').style.display='block'; document.getElementById('advGameScreen').style.display='none'; showSection('adventure'); document.getElementById('moreDropdown').classList.remove('show');">&#127922; Abenteuer Mode</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- DASHBOARD -->
+<div id="section-dashboard" class="section">
+  <div class="hero">
+    <h1>Dein Deutsches Tagebuch</h1>
+    <p>Your personal German language practice diary — write daily, track progress, speak confidently.</p>
+    <div class="date-display" id="todayDate"></div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:20px">
+    <div class="stat-card">
+      <div class="stat-num" id="statEntries" style="color:var(--accent)">0</div>
+      <div class="stat-label">?? Total Diary Entries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statWords" style="color:var(--accent2)">0</div>
+      <div class="stat-label">?? Words Learned</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statStreak" style="color:var(--gold)">0</div>
+      <div class="stat-label">?? Day Streak</div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:20px">
+    <div class="card" style="margin-bottom:0;background:linear-gradient(135deg,rgba(91,141,238,0.1),transparent);border-color:var(--accent)">
+      <div class="card-title">?? Word of the Day</div>
+      <div style="font-size:1.8rem;font-weight:800;color:var(--accent);margin-top:10px" id="wotdDe">Laden...</div>
+      <div style="font-size:1rem;color:var(--text-muted);margin-bottom:10px" id="wotdEn">Loading...</div>
+      <button class="btn btn-outline btn-sm" onclick="speakWord(document.getElementById('wotdDe').innerText)">?? Listen</button>
+    </div>
+    <div class="card" style="margin-bottom:0;background:linear-gradient(135deg,rgba(167,139,250,0.1),transparent);border-color:var(--accent2)">
+      <div class="card-title">?? Sentence of the Day</div>
+      <div style="font-size:1.2rem;font-weight:700;color:var(--text);margin-top:10px" id="sotdDe">Laden...</div>
+      <div style="font-size:0.9rem;color:var(--text-muted);margin-bottom:10px;margin-top:6px" id="sotdEn">Loading...</div>
+      <button class="btn btn-outline btn-sm" onclick="speakWord(document.getElementById('sotdDe').innerText)">?? Listen</button>
+    </div>
+  </div>
+
+  
+  
+
+    <!-- Cloud Sync Panel -->
+    <div class="card" style="margin-bottom:20px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), transparent); border-color: #fbbf24;">
+      <div class="card-title" style="color: #fbbf24;">&#9729;&#65039; Cloud Sync (GitHub Gists)</div>
+      <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 15px; margin-top: 5px;">
+        Automatically back up your vocabulary, diary, and progress to your GitHub account. Sync across your phone and laptop!
+      </div>
+      <div id="cloudSyncStatus" style="font-size:0.85rem; margin-bottom: 15px; color: var(--text-muted);">
+        Status: <span style="color:var(--danger); font-weight:bold;" id="syncStatusText">Not Connected</span>
+      </div>
+      <div style="display:flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="document.getElementById('cloudSyncModal').style.display='flex'">Configure</button>
+        <button class="btn btn-outline" id="cloudRestoreBtn" style="display:none;" onclick="restoreFromCloud()">Restore Data</button>
+      </div>
+    </div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">🎯 Level Roadmap</div>
+      <div class="card-sub">Click to mark a level as completed ✅</div>
+      <div class="roadmap" id="roadmap"></div>
+      <div style="margin-top:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:.85rem">Overall Progress</span>
+          <span class="level-badge badge-a1" id="currentLevel">Beginner</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+        <div style="font-size:.78rem;color:var(--text-muted);margin-top:8px" id="progressHint">Write 5 diary entries to reach A1!</div>
+      </div>
+    </div>
+    <div class="card" style="position: relative; overflow: hidden; border-color: var(--accent);" id="heatmapCard">
+      <div style="position: absolute; top: 10px; right: 10px; font-size: 0.8rem; font-weight: bold; padding: 4px 10px; border-radius: 12px; transition: all 0.3s; z-index: 2;" id="timerStatus" class="idle-status">
+        ?? IDLE
+      </div>
+      <div class="card-title" style="margin-bottom: 5px; padding-right: 70px;">
+          &#128200; Bootcamp Tracker
+      </div>
+      <div class="card-sub" style="margin-bottom: 15px;">Daily Goal: <span id="bootcampGoalDisplay">Loading...</span></div>
+      
+      <div style="text-align:center; margin-bottom: 25px;">
+        <div style="font-size: 2.5rem; font-family: monospace; font-weight: bold; color: var(--text); margin-bottom: 8px; text-shadow: 0 0 10px rgba(0,0,0,0.5);" id="bootcampClock">00:00</div>
+        <div class="progress-bar-wrap" style="height: 10px; max-width: 80%; margin: 0 auto; background: var(--surface2);">
+          <div class="progress-bar" id="bootcampProgress" style="width: 0%; transition: width 1s linear, background-color 0.5s;"></div>
+        </div>
+      </div>
+
+      <div class="card-sub" id="heatmapSubtitle" style="text-align:center;">Current Month</div>
+      <div class="heatmap-wrapper">
+        <div class="heatmap-calendar" id="heatmap"></div>
+      </div>
+    </div>
+    </div>
+
+  <div class="card tip-card">
+    <div class="tip-num">💡 Today's Grammar Tip</div>
+    <div class="tip-rule" id="dashTipRule"></div>
+    <div class="tip-example" id="dashTipExample"></div>
+  </div>
+
+  <div style="text-align:center;margin-top:24px">
+    <button class="btn btn-primary" onclick="showSection('diary')">✍️ Write Today's Diary Entry</button>
+  </div>
+
+  <div class="card" style="margin-top:24px; border-color:var(--danger)">
+    <div class="card-title">?? Data Backup & Restore</div>
+    <div class="card-sub">Your data is stored locally in your browser. If you clear your history, it will be deleted! Export a backup regularly.</div>
+    <div style="display:flex; gap:12px; margin-top:14px; align-items:center; flex-wrap:wrap">
+      <button class="btn btn-outline" style="border-color:var(--success); color:var(--success)" onclick="exportData()">?? Export Backup (JSON)</button>
+      <div style="position:relative; overflow:hidden; display:inline-block">
+        <button class="btn btn-outline" style="border-color:var(--danger); color:var(--danger)">?? Import Backup</button>
+                <input type="file" accept=".json" onchange="importData(event)" style="position:absolute; left:0; top:0; opacity:0; cursor:pointer; height:100%">
+      </div>
+    </div>
+  </div>
+
+  <!-- WIKI BUTTON -->
+  <div style="margin-top:14px; text-align:center">
+    <button class="btn btn-primary" onclick="toggleWiki()" style="width:100%; font-size:1.1rem">&#128214; Wiki (Study Guide)</button>
+  </div>
+  
+  <div id="wikiContent" style="display:none; margin-top:14px; background:var(--surface); border:1px solid var(--accent); border-radius:12px; padding:20px; text-align:left">
+    <div style="font-size:1.1rem; line-height:1.6; color:var(--text)">
+      
+      <p style="margin-bottom:30px; font-weight:500; color:var(--text-muted)">This application is designed to take you from a complete beginner (A1) to professional fluency (B2). To get the fastest results, follow this daily routine.</p>
+
+      <h3 style="color:var(--accent); border-bottom:2px solid var(--border); padding-bottom:8px; margin-bottom:15px">&#9201;&#65039; The Optimal Daily Routine (20-30 Minutes)</h3>
+      <ol style="margin-bottom:30px; padding-left:20px; display:flex; flex-direction:column; gap:10px">
+        <li><b>Check the Dashboard (2 mins):</b> Read the Word and Sentence of the Day. Click the "Listen" button and repeat the pronunciation out loud.</li>
+        <li><b>Review Vocabulary & SRS (5 mins):</b> Open <i>More ? SRS Review</i>. Review flashcards due today. Add 5 to 10 new words you encountered at work to the Vocabulary tab.</li>
+        <li><b>Write Your Diary (10 mins):</b> Open the Diary tab. Do the Sentence Builder prompt first. Answer the 3 standard prompts. When saving, strictly follow the Grammar Checklist.</li>
+        <li><b>Take a Quick Quiz (5 mins):</b> Alternate daily: MCQ (Mon/Wed), Listening (Tue/Thu), Grammar & Verbs (Fri).</li>
+      </ol>
+
+      <div style="background:var(--surface2); border-left:4px solid var(--gold); padding:15px; margin-bottom:40px; border-radius:8px">
+        <b>&#128161; Weekly Habit:</b> Every Sunday, open the <i>Weekly Reflection</i> tab to review your progress, and export a <b>Data Backup</b> from your Dashboard to keep your words safe!
+      </div>
+
+      <h3 style="color:var(--accent); border-bottom:2px solid var(--border); padding-bottom:8px; margin-bottom:20px">&#128200; How to Adapt Your Routine for Each Level</h3>
+      
+      <div style="margin-bottom:25px; padding:15px; border:1px solid var(--border); border-radius:10px">
+        <h4 style="margin-top:0; color:#34d399">&#128994; A1 Level (Beginner)</h4>
+        <p style="margin:8px 0"><b>Goal:</b> Build basic vocabulary and get used to sounds.</p>
+        <ul style="padding-left:20px; margin:0">
+          <li><b>Vocab:</b> Add everyday words (Haus, essen). Pay attention to Gender Colors (Blue = der, Red = die, Green = das).</li>
+          <li><b>Diary:</b> Just write 1 simple sentence per prompt (e.g., <i>Ich lerne Deutsch</i>).</li>
+          <li><b>Tools:</b> Use the Sentence Builder manually and test the Pronunciation Checker.</li>
+        </ul>
+      </div>
+
+      <div style="margin-bottom:25px; padding:15px; border:1px solid var(--border); border-radius:10px">
+        <h4 style="margin-top:0; color:#fbbf24">&#128993; A2 Level (Elementary)</h4>
+        <p style="margin:8px 0"><b>Goal:</b> Connect sentences and understand spoken German.</p>
+        <ul style="padding-left:20px; margin:0">
+          <li><b>Vocab:</b> Group words into categories (Verbs, Daily Life).</li>
+          <li><b>Diary:</b> Write 2 sentences per prompt. Combine them using <i>und, aber, weil</i>.</li>
+          <li><b>Tools:</b> Focus heavily on the Dictation Quiz to train your ear.</li>
+        </ul>
+      </div>
+
+      <div style="margin-bottom:25px; padding:15px; border:1px solid var(--border); border-radius:10px">
+        <h4 style="margin-top:0; color:#f97316">&#128992; B1 Level (Intermediate)</h4>
+        <p style="margin:8px 0"><b>Goal:</b> Professional vocabulary and holding conversations.</p>
+        <ul style="padding-left:20px; margin:0">
+          i>
+          <li><b>Diary:</b> Write in the past tense (Perfekt/Pr�teritum). Write 3+ sentences per prompt.</li>
+          <li><b>Tools:</b> Start doing the Monthly Speaking Challenge (talk for 1 minute).</li>
+        </ul>
+      </div>
+
+      <div style="margin-bottom:20px; padding:15px; border:1px solid var(--border); border-radius:10px">
+        <h4 style="margin-top:0; color:#ef4444">&#128308; B2 Level (Fluent)</h4>
+        <p style="margin:8px 0"><b>Goal:</b> Complex grammar and spontaneous speaking.</p>
+        <ul style="padding-left:20px; margin:0">
+          <li><b>Reading:</b> Read the Reading Practice stories daily to master tech context.</li>
+          <li><b>Tools:</b> Grind the Irregular Verbs trainer and Grammar Quiz.</li>
+          <li><b>Diary:</b> Write full paragraphs. The Grammar Checklist is critical here.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  
+  </div>
+
+  
+  </div>
+
+</div>
+
+<!-- DIARY -->
+
+<div id="section-diary" class="section">
+
+    
+    <div class="card">
+    <div class="card-title">📓 Heute's Tagebucheintrag <span style="font-size:.8rem;color:var(--text-muted);font-weight:400" id="diaryDate"></span></div>
+    <div class="card-sub">Answer all 3 prompts in German. Even simple sentences are fine!</div>
+
+    <div class="prompt-box">
+      <div class="prompt-label">Prompt 1 – Was habe ich heute gemacht?</div>
+      <div class="prompt-de">Was habe ich heute gemacht?</div>
+      <div class="prompt-en">What did I do today?</div>
+    </div>
+    <div class="field">
+      <div style="position:relative;">
+        <textarea id="prompt1" rows="3" placeholder="Heute habe ich Java gelernt. Ich habe auch..."></textarea>
+        <button class="btn btn-outline" style="position:absolute; bottom:10px; right:10px; border-radius:50%; width:35px; height:35px; padding:0; display:flex; align-items:center; justify-content:center; background:var(--surface);" onclick="startVoiceTyping('prompt1', this)">&#127897;</button>
+      </div>
+      <div class="word-count" id="wc1">0 words</div>
+    </div>
+
+    <div class="prompt-box">
+      <div class="prompt-label">Prompt 2 – Was habe ich gelernt?</div>
+      <div class="prompt-de">Was habe ich heute gelernt?</div>
+      <div class="prompt-en">What did I learn today?</div>
+    </div>
+    <div class="field">
+      <div style="position:relative;">
+        <textarea id="prompt2" rows="3" placeholder="Ich habe Docker gelernt. Ich habe auch neue deutsche Wörter gelernt..."></textarea>
+        <button class="btn btn-outline" style="position:absolute; bottom:10px; right:10px; border-radius:50%; width:35px; height:35px; padding:0; display:flex; align-items:center; justify-content:center; background:var(--surface);" onclick="startVoiceTyping('prompt2', this)">&#127897;</button>
+      </div>
+      <div class="word-count" id="wc2">0 words</div>
+    </div>
+
+    <div class="prompt-box">
+      <div class="prompt-label">Prompt 3 – Was werde ich morgen machen?</div>
+      <div class="prompt-de">Was werde ich morgen machen?</div>
+      <div class="prompt-en">What will I do tomorrow?</div>
+    </div>
+    <div class="field">
+      <div style="position:relative;">
+        <textarea id="prompt3" rows="3" placeholder="Morgen werde ich Kubernetes lernen. Ich werde auch..."></textarea>
+        <button class="btn btn-outline" style="position:absolute; bottom:10px; right:10px; border-radius:50%; width:35px; height:35px; padding:0; display:flex; align-items:center; justify-content:center; background:var(--surface);" onclick="startVoiceTyping('prompt3', this)">&#127897;</button>
+      </div>
+      <div class="word-count" id="wc3">0 words</div>
+    </div>
+
+    <div class="prompt-box" style="border-color:var(--accent3);background:rgba(52,211,153,0.05)">
+      <div class="prompt-label" style="color:var(--accent3)">?? Daily Sentence Builder</div>
+      <div class="prompt-de">Build a sentence using: <span id="builderWord" style="font-weight:800;color:var(--accent3);font-size:1.1rem;text-decoration:underline">...</span></div>
+      <div class="prompt-en">Practice your vocabulary!</div>
+    </div>
+    <div class="field">
+      <div style="position:relative;">
+        <textarea id="prompt4" rows="2" placeholder="Ich lerne..."></textarea>
+        <button class="btn btn-outline" style="position:absolute; bottom:10px; right:10px; border-radius:50%; width:35px; height:35px; padding:0; display:flex; align-items:center; justify-content:center; background:var(--surface);" onclick="startVoiceTyping('prompt4', this)">&#127897;</button>
+      </div>
+    </div>
+    
+    <div class="field">
+      <label>?? Free Writing (Optional)</label>
+      <div style="position:relative;">
+        <textarea id="prompt5" rows="3" placeholder="Ich bin sehr m�de heute..."></textarea>
+        <button class="btn btn-outline" style="position:absolute; bottom:10px; right:10px; border-radius:50%; width:35px; height:35px; padding:0; display:flex; align-items:center; justify-content:center; background:var(--surface);" onclick="startVoiceTyping('prompt5', this)">&#127897;</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn btn-success" onclick="saveDiaryEntry()">&#128190; Save Entry</button>
+        <button class="btn btn-outline" onclick="clearDiary()">&#128465; Clear</button>
+        <div style="position:relative; overflow:hidden; display:inline-block">
+          <button class="btn btn-outline" style="border-color:var(--gold); color:var(--gold)">&#128193; Upload Sentences (CSV)</button>
+          <input type="file" accept=".csv" onchange="importSentenceCsv(event)" style="position:absolute; left:0; top:0; opacity:0; cursor:pointer; height:100%">
+        </div>
+      </div>
+      <div id="grammarFeedback" style="margin-top:20px; display:none; padding:15px; border-radius:8px; background:rgba(239,68,68,0.1); border:1px solid var(--danger);"></div>
+      <div><!-- closing tag balancer -->
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔤 Useful Starter Phrases</div>
+    <div class="card-sub">Click to copy into your diary</div>
+    <div id="phraseList" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+  </div>
+</div>
+
+<!-- VOCABULARY -->
+<div id="section-vocab" class="section">
+  <div class="card">
+    <div class="card-title">📚 Add New Words</div>
+    <div class="card-sub">Goal: 10 words/day. <span id="todayWordCount" style="color:var(--accent3);font-weight:600">0</span> added today.</div>
+    <div class="vocab-row">
+      <div class="field" style="margin:0">
+        <label>German Word / Phrase</label>
+        <input id="vocabDe" placeholder="die Datenbank" />
+      </div>
+      <div class="field" style="margin:0">
+        <label>English Translation</label>
+        <input id="vocabEn" placeholder="database" />
+      </div>
+      <button class="btn btn-primary" onclick="addVocab()" style="margin-top:22px">+ Add</button>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>Category</label>
+      <select id="vocabCat">
+        <option value="General">🌐 General</option>
+        <option value="Java">☕ Java</option>
+        <option value="SpringBoot">🌱 Spring Boot</option>
+        <option value="Database">🗄️ Database</option>
+        <option value="Cloud">☁️ Cloud / AWS</option>
+        <option value="Kubernetes">⚙️ Kubernetes / Docker</option>
+        <option value="Work">💼 Work / Office</option>
+        <option value="Daily">🏠 Daily Life</option>
+        <option value="Verbs">⚡ Verbs</option>
+      </select>
+    </div>
+    
+  </div>
+  
+  
+
+  
+  <div class="card" style="margin-bottom:20px;background:var(--surface2)">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-weight:700">?? Bulk CSV Importers</div>
+        <div style="font-size:0.8rem;color:var(--text-muted)">Upload .csv files (Format: German,English) to load thousands of words/sentences!</div>
+      </div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <div style="position:relative; overflow:hidden; display:inline-block">
+          <button class="btn btn-outline btn-sm">Upload Vocab (CSV)</button>
+          <input type="file" accept=".csv" onchange="importCsv(event)" style="position:absolute; left:0; top:0; opacity:0; cursor:pointer; height:100%">
+        </div>
+        
+        
+        <div style="position:relative; overflow:hidden; display:inline-block">
+          <button class="btn btn-outline btn-sm" style="border-color:#10b981; color:#10b981" onclick="fetchCsvFromWeb()">&#127183; Fetch from Web URL</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">&#129300; Quick Test (Flashcard)</div>
+    <div id="flashcard" style="text-align:center;padding:20px 0">
+      <div id="flashFront" style="font-size:2rem;font-weight:800;color:var(--accent);margin-bottom:12px">—</div>
+      <div id="flashBack" style="font-size:1.1rem;color:var(--text-muted);min-height:28px"></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:16px">
+        <button class="btn btn-outline btn-sm" onclick="revealFlash()">👁 Reveal</button>
+        <div id="srsButtons" style="display:none;width:100%;gap:10px;justify-content:center;margin-top:8px">
+          <button class="btn btn-danger btn-sm" style="flex:1" onclick="submitSrs('hard')">Hard (1d)</button>
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="submitSrs('good')">Good (3d)</button>
+          <button class="btn btn-success btn-sm" style="flex:1" onclick="submitSrs('easy')">Easy (7d)</button>
+        </div>
+        <button id="nextFlashBtn" class="btn btn-primary btn-sm" onclick="nextFlash()" style="display:none">Skip ?</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-row">
+    <div class="tab active" onclick="filterVocab('All',this)">All</div>
+    <div class="tab" onclick="filterVocab('Java',this)">☕ Java</div>
+    <div class="tab" onclick="filterVocab('SpringBoot',this)">🌱 Spring Boot</div>
+    <div class="tab" onclick="filterVocab('Database',this)">🗄️ Database</div>
+    <div class="tab" onclick="filterVocab('Cloud',this)">☁️ Cloud</div>
+    <div class="tab" onclick="filterVocab('Kubernetes',this)">⚙️ K8s/Docker</div>
+    <div class="tab" onclick="filterVocab('Work',this)">💼 Work</div>
+    <div class="tab" onclick="filterVocab('Daily',this)">🏠 Daily</div>
+    <div class="tab" onclick="filterVocab('Verbs',this)">⚡ Verbs</div>
+    <div class="tab" onclick="filterVocab('General',this)">🌐 General</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📖 Your Vocabulary List <span id="vocabCount" style="font-size:.8rem;color:var(--text-muted);font-weight:400"></span></div>
+    <ul class="vocab-list" id="vocabList"></ul>
+  </div>
+</div>
+
+<!-- SPEAKING -->
+<div id="section-speaking" class="section">
+  <div class="card">
+    <div class="card-title">🎤 Speaking Prompts</div>
+    <div class="card-sub">Record yourself for 2–3 minutes on one topic. Listen back monthly to track improvement.</div>
+    <div id="speakingTopics"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🗣️ Pronunciation Checker</div>
+    <div class="card-sub">Speak a sentence and see if the browser understands you! (Chrome required)</div>
+    <div style="margin-bottom:10px">
+      <input id="targetPronunciation" placeholder="Type a German word or sentence to practice..." />
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn btn-primary" onclick="checkPronunciation()">🎤 Listen</button>
+      <span id="pronunciationResult" style="font-weight:600;font-size:0.9rem"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎙️ Monthly Speaking Challenge</div>
+    <div class="card-sub">Record your 2-minute speech locally to hear your progress later. No backend! Safe in browser.</div>
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px">
+      <button class="btn btn-danger" id="btnRecord" onclick="toggleRecording()">🔴 Start Recording</button>
+      <span id="recordingStatus" style="color:var(--danger);font-weight:700;display:none;animation:pulse 1s infinite">Recording... ⏺</span>
+    </div>
+    <div id="audioList" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📝 Speaking Notes</div>
+    <div class="card-sub">Write key phrases or notes after your speaking practice</div>
+    <textarea id="speakNotes" rows="5" placeholder="Ich habe heute über meinen Beruf gesprochen..."></textarea>
+    <div style="margin-top:12px"><button class="btn btn-primary" onclick="saveSpeakNotes()">💾 Save Notes</button></div>
+    <div id="savedSpeakNotes" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<style>
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+    
+    
+    .heatmap-wrapper { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; align-items: center; }
+    .heatmap-calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); width: 100%; max-width: 350px; }
+    .heatmap-day-label { font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-align: center; }
+    .heatmap-calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      width: 100%;
+      max-width: 350px;
+    }
+    .heat-cell {
+      aspect-ratio: 1;
+      margin: auto;
+      width: 100%;
+      max-width: 25px;
+      border-radius: 4px;
+      background: var(--surface2);
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .heat-cell:hover { transform: scale(1.1); }
+    .heat-1 { background: var(--accent3); color: #fff; opacity: 0.7; }
+    .heat-2 { background: var(--accent3); color: #fff; opacity: 0.9; }
+    .heat-3 { background: var(--accent3); color: #fff; opacity: 1.0; }
+    .heat-future { background: transparent; pointer-events: none; color: transparent; }
+
+  </style>
+
+<!-- WEEKLY REFLECTION -->
+<div id="section-reflection" class="section">
+  <div class="card">
+    <div class="card-title">🪞 Weekly Reflection</div>
+    <div class="card-sub">Every Sunday — review your week, track what improved and set goals for next week.</div>
+
+    <div class="prompt-box">
+      <div class="prompt-label">Was hat sich verbessert? (What improved?)</div>
+      <div class="prompt-de">Was hat sich diese Woche verbessert?</div>
+      <div class="prompt-en">What improved this week?</div>
+    </div>
+    <div class="field">
+      <textarea id="ref1" rows="3" placeholder="Meine Grammatik hat sich verbessert. Ich spreche jetzt langsamer aber klarer..."></textarea>
+    </div>
+
+    <div class="prompt-box">
+      <div class="prompt-label">Was war schwierig? (What was difficult?)</div>
+      <div class="prompt-de">Was war diese Woche schwierig?</div>
+      <div class="prompt-en">What was difficult this week?</div>
+    </div>
+    <div class="field">
+      <textarea id="ref2" rows="3" placeholder="Der Akkusativ war schwierig. Ich muss mehr Übungen machen..."></textarea>
+    </div>
+
+    <div class="prompt-box">
+      <div class="prompt-label">Was ist mein Ziel für nächste Woche? (Next week's goal?)</div>
+      <div class="prompt-de">Was ist mein Ziel für nächste Woche?</div>
+      <div class="prompt-en">What is my goal for next week?</div>
+    </div>
+    <div class="field">
+      <textarea id="ref3" rows="3" placeholder="Nächste Woche möchte ich 70 neue Wörter lernen. Ich möchte auch täglich sprechen..."></textarea>
+    </div>
+
+    <button class="btn btn-success" onclick="saveReflection()">💾 Save Reflection</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Past Reflections</div>
+    <div id="reflectionList"></div>
+  </div>
+</div>
+
+<!-- PAST ENTRIES -->
+<div id="section-entries" class="section">
+  <div class="card">
+    
+    
+    <div class="card-title">&#128214; Past Diary Entries</div>
+    <div class="card-sub">Your complete diary history. Keep going!</div>
+    <div id="entriesList"></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="section-quiz" class="section">
+  <div class="card" id="quizMenu">
+    <div class="card-title">🧠 Test Your Knowledge</div>
+    <div class="card-sub">Choose a quiz to practice what you've learned. No backend required!</div>
+    <div class="grid-2">
+      <div class="roadmap-item" style="display:block" onclick="startQuiz('vocab')">
+        <div class="roadmap-label">📚 Vocabulary Quiz</div>
+        <div class="roadmap-sub">Test English / German translation</div>
+      </div>
+      <div class="roadmap-item" style="display:block" onclick="startQuiz('article')">
+        <div class="roadmap-label">🅰️ Article Quiz</div>
+        <div class="roadmap-sub">Practice der / die / das</div>
+      </div>
+      <div class="roadmap-item" style="display:block" onclick="startQuiz('sentence')">
+        <div class="roadmap-label">🧩 Sentence Order</div>
+        <div class="roadmap-sub">Build correct German sentences</div>
+      </div>
+      <div class="roadmap-item" style="display:block" onclick="startQuiz('weekly')">
+        <div class="roadmap-label">?? Weekly Review</div>
+        <div class="roadmap-sub">Test words added in the last 7 days</div>
+      </div>
+      <div class="roadmap-item" style="display:block;border-color:var(--accent);background:rgba(91,141,238,0.1)" onclick="startQuiz('listening')">
+        <div class="roadmap-label">?? Listening Quiz</div>
+        <div class="roadmap-sub">Train your ear! Type or select what you hear</div>
+      </div>
+      
+      <div class="roadmap-item" style="display:block;border-color:var(--success);background:rgba(52,211,153,0.1)" onclick="startQuiz('grammar')">
+        <div class="roadmap-label">&#129513; Grammar Quiz (B2)</div>
+        <div class="roadmap-sub">Test cases (Dativ/Akkusativ) and prepositions.</div>
+      </div>
+      <div class="roadmap-item" style="display:block;border-color:var(--gold);background:rgba(251,191,36,0.1)" onclick="startQuiz('verbs')">
+        <div class="roadmap-label">&#9881;&#65039; Irregular Verbs</div>
+        <div class="roadmap-sub">Master the past tenses of strong verbs!</div>
+      </div>
+</div>
+    </div>
+  </div>
+
+  <div class="card" id="quizActive" style="display:none">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px">
+      <span class="vocab-cat" id="quizTypeLabel" style="font-size:.85rem;margin:0">Type</span>
+      <span style="font-weight:700;color:var(--text-muted)" id="quizProgress">1 / 10</span>
+    </div>
+    <div id="quizQuestion" style="font-size:1.3rem;font-weight:700;margin-bottom:20px;text-align:center">Question?</div>
+    <div id="quizOptions" style="display:flex;flex-direction:column;gap:10px"></div>
+    <div style="margin-top:20px;display:flex;justify-content:space-between">
+      <button class="btn btn-outline btn-sm" onclick="quitQuiz()">Quit</button>
+      <button class="btn btn-primary" id="quizNextBtn" onclick="nextQuestion()" style="display:none">Next →</button>
+    </div>
+  </div>
+
+  <div class="card" id="quizResult" style="display:none;text-align:center">
+    <div style="font-size:3rem;margin-bottom:10px">🎉</div>
+    <div class="card-title" style="justify-content:center;font-size:1.4rem">Quiz Complete!</div>
+    <div style="font-size:1.2rem;margin:10px 0 20px">Your score: <span id="quizScore" style="color:var(--accent);font-weight:800">5 / 5</span></div>
+    <button class="btn btn-primary" onclick="quitQuiz()">Back to Menu</button>
+  </div>
+</div>
+
+<!-- GRAMMAR TIPS -->
+<div id="section-grammar" class="section">
+  <div class="card">
+    <div class="card-title">✏️ German Grammar Tips</div>
+    <div class="card-sub">Essential rules to get you from A1 to B2</div>
+    <div id="allTips"></div>
+  </div>
+</div>
+
+
+
+
+</div>
+
+
+
+<!-- RESTORED SECTIONS -->
+
+
+
+
+
+
+
+
+
+<div id="section-sentencebuilder" class="section">
+  <div class="card">
+    <div class="card-title">&#127959;&#65039; Sentence Builder</div>
+    <div class="card-sub">Practice forming sentences manually.</div>
+    <div class="field"><input id="sbSub" placeholder="Subject (e.g. Ich)"></div>
+    <div class="field"><input id="sbVerb" placeholder="Verb (e.g. lerne)"></div>
+    <div class="field"><input id="sbObj" placeholder="Object (e.g. Deutsch)"></div>
+    <button class="btn btn-primary" onclick="buildSentence()">Build Sentence</button>
+    <div id="sbResult" style="margin-top:14px; font-size:1.2rem; font-weight:700; color:var(--accent)"></div>
+  </div>
+</div>
+
+
+  <!-- DICTIONARY -->
+  <div id="section-dictionary" class="section">
+    <div class="card" style="margin-bottom:24px;background:var(--surface2)">
+      <div style="font-weight:800;font-size:1.5rem;margin-bottom:10px;display:flex;align-items:center;gap:10px">
+        <span>&#128269;</span>
+        <input type="text" id="dictSearch" oninput="searchDictionary()" placeholder="Search in German or English..." style="width:100%;padding:12px;font-size:1.1rem;border:2px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);outline:none;">
+      </div>
+      <div style="font-size:0.85rem;color:var(--text-muted);text-align:center">Omni-Search: Automatically filters Active & Hidden Words + Sentences.</div>
+    </div>
+    <div id="dictResults">
+       <div style="text-align:center;padding:40px;color:var(--text-muted)">Type a word to begin searching...</div>
+    </div>
+  
+<div style="margin-top:30px;"><div class="card">
+    <div class="card-title">&#128214; B2 Reading Practice (Leseverstehen)</div>
+    <div class="card-sub">Read the text and answer the True/False questions.</div>
+    
+    <div id="storyBtnContainer" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap"></div>
+
+    <div id="readingContent" style="display:none; background:var(--surface2); padding:20px; border-radius:12px; margin-bottom:20px; font-size:1.1rem; line-height:1.6">
+      <h3 id="storyTitle" style="margin-top:0; color:var(--accent)"></h3>
+      <div id="storyText" style="color:var(--text)"></div>
+    </div>
+
+    <div id="readingQuestions" style="display:none">
+      <h4 style="margin-bottom:10px">Fragen zum Text (Questions)</h4>
+      <div id="q1Box" style="margin-bottom:14px; padding:12px; border:1px solid var(--border); border-radius:8px">
+        <div id="q1Text" style="font-weight:600; margin-bottom:8px"></div>
+        <button class="btn btn-outline btn-sm" onclick="checkReading(1, true)">Richtig (True)</button>
+        <button class="btn btn-outline btn-sm" onclick="checkReading(1, false)">Falsch (False)</button>
+        <span id="q1Res" style="margin-left:10px; font-weight:bold"></span>
+      </div>
+      <div id="q2Box" style="margin-bottom:14px; padding:12px; border:1px solid var(--border); border-radius:8px">
+        <div id="q2Text" style="font-weight:600; margin-bottom:8px"></div>
+        <button class="btn btn-outline btn-sm" onclick="checkReading(2, true)">Richtig (True)</button>
+        <button class="btn btn-outline btn-sm" onclick="checkReading(2, false)">Falsch (False)</button>
+        <span id="q2Res" style="margin-left:10px; font-weight:bold"></span>
+      </div>
+      <div id="q3Box" style="margin-bottom:14px; padding:12px; border:1px solid var(--border); border-radius:8px">
+        <div id="q3Text" style="font-weight:600; margin-bottom:8px"></div>
+        <button class="btn btn-outline btn-sm" onclick="checkReading(3, true)">Richtig (True)</button>
+        <button class="btn btn-outline btn-sm" onclick="checkReading(3, false)">Falsch (False)</button>
+        <span id="q3Res" style="margin-left:10px; font-weight:bold"></span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+  
+  <!-- AI CHAT WIDGET -->
+  <div id="aiChatWidget" style="display:none; position:fixed; bottom:80px; right:20px; width:350px; height:500px; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:9999; flex-direction:column; overflow:hidden;">
+    <div style="background:var(--accent); color:white; padding:15px; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+      <span>&#129302; AI Partner</span>
+      <div>
+        <button onclick="toggleChatSettings()" style="background:transparent; border:none; color:white; cursor:pointer; font-size:1.2rem; margin-right:10px;">&#9881;&#65039;</button>
+        <button onclick="toggleAiChat()" style="background:transparent; border:none; color:white; cursor:pointer; font-size:1.2rem;">&#10006;</button>
+      </div>
+    </div>
+    <div style="padding:0px 15px;">
+      
+      <div id="chatSettings" style="display:none; margin-top:15px; padding-top:15px; border-top:1px solid var(--border);">
+        <div style="font-size:0.9rem; margin-bottom:10px;">To use the AI Chat, you need a free Google Gemini API Key. Since this app runs purely on your device, your key is stored locally and never sent to our servers!</div>
+        <div style="display:flex; gap:10px;">
+          <input type="password" id="geminiApiKey" placeholder="Paste your Gemini API Key here..." style="flex:1; padding:8px; border-radius:6px; border:1px solid var(--border); background:var(--surface);">
+          <button class="btn btn-primary" onclick="saveApiKey()">Save Key</button>
+        </div>
+        <div style="font-size:0.8rem; margin-top:10px;"><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--accent);">Get a free API key here</a></div>
+      </div>
+    </div>
+    
+    <div style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div id="chatHistory" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px; background:var(--surface2);">
+        <div style="text-align:center; color:var(--text-muted); margin-top:20px;">Provide your API key above to start chatting!</div>
+      </div>
+      <div style="padding:15px; background:var(--surface); border-top:1px solid var(--border); display:flex; gap:10px;">
+        <button class="btn btn-outline" id="chatMicBtn" onclick="startChatVoice()" style="padding:0 15px; font-size:1.2rem; border-color:var(--accent); color:var(--accent);" title="Voice Input">&#127897;&#65039;</button>
+        <input type="text" id="chatInput" placeholder="Type in German..." style="flex:1; padding:12px; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:1rem;" onkeypress="if(event.key==='Enter') sendChatMessage()">
+        <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="section-srs" class="section">
+  <div class="card">
+    <div class="card-title">&#128259; SRS Due Today</div>
+    <div class="card-sub">Words scheduled for review today.</div>
+    <div id="srsDueList"></div>
+  </div>
+</div>
+
+<div id="section-dictation" class="section">
+  <div class="card">
+    <div class="card-title">&#127911; Dictation Quiz</div>
+    <div class="card-sub">Listen to the word and type it correctly.</div>
+    <div style="margin-bottom:12px">
+      <button class="btn btn-outline" onclick="startDictation()">?? Listen to Word</button>
+    </div>
+    <div class="field">
+      <input id="dictationAnswer" placeholder="Type what you hear...">
+    </div>
+    <button class="btn btn-success" onclick="checkDictation()">Check Answer</button>
+    <div id="dictationResult" style="margin-top:14px; font-weight:bold"></div>
+  </div>
+</div>
+
+<div id="section-adventure" class="section" style="flex-direction:column; min-height:80vh;">
+  <!-- Setup Screen -->
+  <div id="advSetupScreen" style="padding:20px; max-width:600px; margin:0 auto; width:100%; display:block;">
+    <h2 style="color:var(--accent); text-align:center; margin-bottom:30px;">&#127922; Abenteuer Mode</h2>
+    
+    <label style="display:block; margin-bottom:10px; font-weight:bold;">Select Scenario:</label>
+    <select id="advGenre" class="btn btn-outline" style="width:100%; margin-bottom:15px; background:var(--surface);">
+      <option value="The Berlin Caf� (City Life)">&#9749; The Berlin Caf� (City Life)</option>
+      <option value="Lost in the Schwarzwald (Survival Fantasy)">&#127794; Lost in the Schwarzwald (Survival Fantasy)</option>
+      <option value="Der Kriminalfall (Detective Mystery)">&#128113; Der Kriminalfall (Detective Mystery)</option>
+      <option value="The WG Interview (Social Simulation)">&#127968; The WG Interview (Social Simulation)</option>
+    </select>
+    
+    <label style="display:block; margin-bottom:10px; font-weight:bold;">Or Custom Scenario:</label>
+    <input type="text" id="advCustomGenre" placeholder="e.g. A sci-fi space station..." style="width:100%; padding:10px; margin-bottom:20px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text);">
+    
+    <label style="display:block; margin-bottom:10px; font-weight:bold;">Difficulty Level:</label>
+    <select id="advDifficulty" class="btn btn-outline" style="width:100%; margin-bottom:30px; background:var(--surface);">
+      <option value="A1 (Beginner, simple sentences)">A1 (Beginner)</option>
+      <option value="A2 (Basic interactions)">A2 (Elementary)</option>
+      <option value="B1 (Intermediate, complex sentences)">B1 (Intermediate)</option>
+      <option value="B2 (Advanced, fluent roleplay)">B2 (Advanced)</option>
+    </select>
+    
+    <button class="btn btn-primary" style="width:100%; padding:15px; font-size:1.2rem; margin-bottom:15px;" onclick="startAdventure()">Start Adventure</button>
+    <button class="btn btn-outline" style="width:100%; padding:15px;" onclick="showSection('dashboard')">Cancel</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="advGameScreen" style="display:none; flex-direction:column; min-height:75vh; height:100%; background:#1a1a1a; color:#eee; border-radius:12px; overflow:hidden;">
+    <div style="padding:15px; background:#111; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0; color:#34d399;">&#127922; Adventure Log</h3>
+      <button onclick="showSection('dashboard')" style="background:none; border:none; color:#ff4444; font-size:1.5rem; cursor:pointer;">&times;</button>
+    </div>
+    
+    <div id="advHistory" style="flex:1; overflow-y:auto; padding:20px; display:flex; flex-direction:column; gap:15px; font-family:monospace; font-size:1.1rem; line-height:1.5;">
+      <!-- chat logs go here -->
+    </div>
+    
+    <div style="padding:15px; background:#111; border-top:1px solid #333; display:flex; gap:10px;">
+      <button id="advMicBtn" onclick="startAdvVoice()" style="background:#333; border:1px solid #555; color:#fff; padding:12px; border-radius:8px; cursor:pointer; font-size:1.2rem;">&#127897;&#65039;</button>
+      <input type="text" id="advInput" placeholder="What do you want to do?" style="flex:1; padding:12px; border-radius:8px; border:1px solid #555; background:#222; color:#fff; font-family:monospace; font-size:1.1rem;" onkeydown="if(event.key === 'Enter') sendAdvMessage()">
+      <button onclick="sendAdvMessage()" style="background:#34d399; color:#000; border:none; border-radius:8px; padding:0 20px; font-weight:bold; cursor:pointer;">Send</button>
+    </div>
+  </div>
+</div>
+
+
+</main>
+
+<div id="toast"></div>
+
+<script src="js/daily_data.js?v=1782456062322"></script>
+  <script src="js/script.js?v=1782456870589"></script>
+<!-- DIARY CHECKLIST MODAL -->
+<div id="diaryChecklistModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center">
+  <div style="background:var(--surface); padding:24px; border-radius:12px; max-width:400px; width:90%; box-shadow:0 10px 25px rgba(0,0,0,0.2)">
+    <h3 style="margin-top:0; color:var(--accent)">?? B2 Grammar Check</h3>
+    <p style="color:var(--text-muted); font-size:0.9rem">Before you save, please review your German sentences to prevent bad habits!</p>
+    
+    <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; cursor:pointer">
+      <input type="checkbox" id="chk1" style="margin-top:4px">
+      <span><b>Nouns:</b> Did you capitalize ALL nouns? (e.g. das <b>A</b>uto, die <b>Z</b>eit)</span>
+    </label>
+    
+    <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; cursor:pointer">
+      <input type="checkbox" id="chk2" style="margin-top:4px">
+      <span><b>Verb Position:</b> Is the main verb in the 2nd position? (e.g. Heute <b>gehe</b> ich...)</span>
+    </label>
+    
+    <label style="display:flex; align-items:flex-start; gap:10px; margin-bottom:16px; cursor:pointer">
+      <input type="checkbox" id="chk3" style="margin-top:4px">
+      <span><b>Subordinate Clauses:</b> If you used <i>weil, dass, wenn</i>, is the verb at the very end?</span>
+    </label>
+    
+    <div style="display:flex; justify-content:flex-end; gap:10px">
+      <button class="btn btn-outline" onclick="document.getElementById('diaryChecklistModal').style.display='none'">Back to Edit</button>
+      <button class="btn btn-success" onclick="confirmDiarySave()">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+
+<div id="warmupModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+  <div class="card" style="max-width:500px; width:100%; text-align:center;">
+    <div style="font-size:2.5rem; margin-bottom:10px;">&#9749;</div>
+    <div style="font-size:1.5rem; font-weight:800; margin-bottom:5px;">Daily Warm-up</div>
+    <div style="color:var(--text-muted); margin-bottom:20px;">Answer the question to unlock the app for today!</div>
+    <div id="warmupQuestion" style="font-size:1.2rem; font-weight:600; margin-bottom:20px; padding:15px; background:var(--surface2); border-radius:8px;"></div>
+    <div id="warmupOptions" style="display:flex; flex-direction:column; gap:10px;"></div>
+  </div>
+</div>
+
+
+  <div id="lingqTooltip">
+    <div style="font-weight:800; font-size:1.2rem; color:var(--text)" id="lingqDe"></div>
+    <div style="color:var(--text-muted); font-size:1rem" id="lingqEn"></div>
+    <div style="display:flex; gap:10px; margin-top:10px">
+      <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('lingqTooltip').style.display='none'">Close</button>
+      <button class="btn btn-primary" style="flex:2" id="lingqSaveBtn" onclick="saveLingqWord()">&#10024; Save to Flashcards</button>
+    </div>
+  </div>
+  
+
+  <script>
+    const initialSec = localStorage.getItem('dt_current_section') || 'dashboard';
+    const secEl = document.getElementById('section-' + initialSec);
+    if(secEl) secEl.classList.add('active');
+  </script>
+  
+
+  <button id="aiChatFab" onclick="toggleAiChat()" style="position:fixed; bottom:20px; right:20px; width:55px; height:55px; border-radius:50%; background:var(--accent); color:white; border:none; box-shadow:0 4px 15px rgba(0,0,0,0.4); font-size:1.8rem; cursor:pointer; z-index:9999; display:flex; align-items:center; justify-content:center; transition:0.2s;">
+    &#129302;
+  </button>
+  
+
+
+  <!-- Cloud Sync Modal -->
+  <div class="modal-overlay" id="cloudSyncModal">
+    <div class="modal">
+      <h2 style="margin-bottom: 10px;">Configure Cloud Sync</h2>
+      <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom: 20px;">
+        1. Generate a <a href="https://github.com/settings/tokens/new?scopes=gist&description=Deutsches+Tagebuch+Cloud+Sync" target="_blank" style="color:var(--accent);">GitHub Personal Access Token (Gist scope)</a>.<br>
+        2. Paste it below to start auto-syncing.
+      </p>
+      
+      <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:0.9rem;">GitHub Token</label>
+      <input type="password" id="ghTokenInput" class="input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="margin-bottom: 15px;">
+      
+      <label style="display:block; margin-bottom:5px; font-weight:bold; font-size:0.9rem;">Gist ID (Optional: For restoring on other devices)</label>
+      <input type="text" id="ghGistIdInput" class="input" placeholder="Paste Gist ID to restore data..." style="margin-bottom: 20px;">
+      
+      <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" style="flex:1;" onclick="saveCloudConfig()">Connect & Sync</button>
+        <button class="btn btn-outline" style="flex:1;" onclick="document.getElementById('cloudSyncModal').style.display='none'">Cancel</button>
+      </div>
+    </div>
+  </div>
+</body></html>
